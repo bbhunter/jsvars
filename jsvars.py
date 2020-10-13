@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
+
 import sys, re
 import argparse, requests
+from nostril import nonsense
 
 parser = argparse.ArgumentParser(description = "get js variable names from either a javascript file or a list of javascript urls.")
 
 parser.add_argument('-u', '--url', default=False, action="store_true", help="Setting this will take a url or a list of urls from stdin, omitting it will take a javascript file on stdin.")
+parser.add_argument('-s', '--smart', default=False, action="store_true", help="User smart detection to eliminate obfuscated/randomized variable names. This will probably miss things")
 args = parser.parse_args()
 
 def read_in():
@@ -21,13 +25,24 @@ params = set()
 if args.url:
 	urls_list = read_in()
 	for url in urls_list:
-		response = requests.get(url).text
-		for match in get_varnames(response):
-			params.add(match)
+		try:
+			response = requests.get(url).text
+			for match in get_varnames(response):
+				if args.smart and len(match) > 3:
+					if not nonsense(match):
+						params.add(match)
+				else:
+					params.add(match)
+		except:
+			pass
 else:
 	input_data = ' '.join(read_in())
 	for match in get_varnames(input_data):
-		params.add(match)
+		if args.smart and len(match) > 3:
+			if not nonsense(match):
+				params.add(match)
+		else:
+			params.add(match)
 
 for param in params:
 	print(param)
