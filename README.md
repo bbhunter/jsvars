@@ -1,2 +1,2 @@
 # jsvars
-Get variable names from javascript source. 
+Get variable names from a js file or a list of js urls. 
